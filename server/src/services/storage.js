@@ -2,7 +2,6 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
-import { GridFSBucket } from "mongodb";
 import mongoose from "mongoose";
 import { config } from "../env.js";
 import { HttpError } from "../lib/errors.js";
@@ -15,7 +14,8 @@ const usingGridFs = () => config.storageDriver === "gridfs";
 
 function bucket() {
   if (!mongoose.connection?.db) throw new Error("MongoDB is not connected.");
-  return new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+  // Use mongoose's bundled MongoDB driver so Render does not need a separate mongodb package.
+  return new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
 }
 
 export async function saveFile(buffer, ext) {

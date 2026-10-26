@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "npm --prefix client ci && npm --prefix client run build && npm --prefix server ci --omit=dev",
+    "build": "npm --prefix client ci --include=dev && npm --prefix client run build && npm --prefix server ci --omit=dev",
     "start": "npm --prefix server start",
     "test": "npm --prefix server test",
     "test:int": "npm --prefix server run test:int"

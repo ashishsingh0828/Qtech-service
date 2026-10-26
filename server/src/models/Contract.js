@@ -69,4 +69,16 @@ const ContractSchema = new mongoose.Schema(
   }
 );
 
+ContractSchema.pre("deleteMany", async function () {
+  const { removeContractFiles } = await import("../services/storage.js");
+  const docs = await this.model.find(this.getFilter()).select("pms.reportFile amc.docFile").lean();
+  for (const doc of docs) await removeContractFiles(doc);
+});
+
+ContractSchema.pre("deleteOne", { document: false, query: true }, async function () {
+  const { removeContractFiles } = await import("../services/storage.js");
+  const docs = await this.model.find(this.getFilter()).select("pms.reportFile amc.docFile").lean();
+  for (const doc of docs) await removeContractFiles(doc);
+});
+
 export const Contract = mongoose.models.Contract || mongoose.model("Contract", ContractSchema);

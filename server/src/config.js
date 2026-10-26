@@ -36,6 +36,9 @@ export function loadConfig(env) {
     if (!env.MAIL_FROM) problems.push("MAIL_FROM is required when NOTIFY_PROVIDER=resend (example: Qtech Service Desk <noreply@YOUR-VERIFIED-DOMAIN>).");
   }
 
+  const storageDriver = env.STORAGE_DRIVER || (isProd ? "gridfs" : "disk");
+  if (!["disk", "gridfs"].includes(storageDriver)) problems.push("STORAGE_DRIVER must be disk or gridfs.");
+
   if (problems.length) throw new Error("Invalid configuration:\n- " + problems.join("\n- "));
 
   return {
@@ -46,6 +49,7 @@ export function loadConfig(env) {
     tokenHours: 8,
     clientOrigins: withLoopbackTwins((env.CLIENT_ORIGIN || "http://localhost:5173").split(",").map((s) => s.trim()).filter(Boolean), isProd),
     cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === "true" : isProd,
+    storageDriver,
     uploadDir: path.resolve(env.UPLOAD_DIR || "./uploads"),
     staticDir: env.STATIC_DIR ? path.resolve(env.STATIC_DIR) : "",
     tz: env.TZ_NAME || "Asia/Kolkata",

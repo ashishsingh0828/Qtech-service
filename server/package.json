@@ -10,7 +10,7 @@
     "seed:admin": "node src/seed.js admin",
     "seed:demo": "node src/seed.js demo",
     "test": "node --test \"test/unit/*.test.js\"",
-    "test:int": "node --test --test-concurrency=1 \"test/integration/*.test.js\"",
+    "test:int": "node --test --test-concurrency=1 \"test/integration/api.test.js\" && node --test --test-concurrency=1 \"test/integration/storage.test.js\"",
     "test:mail": "node scripts/test-mail.js"
   },
   "dependencies": {

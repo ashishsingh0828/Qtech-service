@@ -7,12 +7,11 @@ import { AMC_REASONS, AMC_STATES, DELAY_REASONS } from "../lib/constants.js";
 import { todayIso } from "../lib/dates.js";
 import { canAccessContract } from "../lib/policy.js";
 import { buildSchedule, mkPm } from "../lib/schedule.js";
-import { MIME, extOf } from "../lib/sniff.js";
 import { EMAIL_RE, isObjectId, oneOf, optDate, parseIndex, reqDate, str } from "../lib/validate.js";
 import { requirePermission } from "../middleware/auth.js";
 import { checkDocument, upload } from "../middleware/upload.js";
 import { otpKey, verifyOtp } from "../services/otp.js";
-import { filePath, removeFile, saveFile } from "../services/storage.js";
+import { removeFile, saveFile, sendStored } from "../services/storage.js";
 
 const router = Router();
 
@@ -214,15 +213,6 @@ router.put(
 );
 
 /* ---------- downloads (same access rule as the contract itself) ---------- */
-function sendStored(res, next, key, name) {
-  const p = filePath(key);
-  if (!p) return next(new HttpError(404, "No file is attached."));
-  res.type(MIME[extOf(key)] || "application/octet-stream");
-  res.download(p, name || "file", (err) => {
-    if (err && !res.headersSent) next(new HttpError(404, "No file is attached."));
-  });
-}
-
 router.get(
   "/:id/pms/:index/report",
   asyncHandler(async (req, res, next) => {

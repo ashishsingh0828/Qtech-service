@@ -76,6 +76,9 @@ test("config refuses unsafe production settings", () => {
   assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "console" }), /console/);
   assert.throws(() => loadConfig({ ...good, MONGO_URI: "" }), /MONGO_URI/);
   assert.equal(loadConfig(good).cookieSecure, true);
+  assert.equal(loadConfig(good).storageDriver, "gridfs");
+  assert.equal(loadConfig({ ...good, STORAGE_DRIVER: "disk" }).storageDriver, "disk");
+  assert.throws(() => loadConfig({ ...good, STORAGE_DRIVER: "s3" }), /STORAGE_DRIVER/);
   assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "resend" }), /RESEND_API_KEY/);
   assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "resend", RESEND_API_KEY: "re_x" }), /MAIL_FROM/);
   const resend = loadConfig({
@@ -91,6 +94,7 @@ test("config refuses unsafe production settings", () => {
   assert.equal(dev.otp.devEcho, true);
   assert.equal(dev.cookieSecure, false);
   assert.equal(dev.port, 5000);
+  assert.equal(dev.storageDriver, "disk");
 });
 
 test("development accepts localhost and 127.0.0.1; production only what is configured", () => {

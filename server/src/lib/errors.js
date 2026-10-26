@@ -30,7 +30,7 @@ export function errorHandler(err, req, res, _next) {
 
   if (status >= 500) {
     console.error(err);
-    message = "Something went wrong on the server.";
+    if (!(err instanceof HttpError)) message = "Something went wrong on the server.";
   }
   res.status(status).json({ message });
 }

@@ -76,6 +76,16 @@ test("config refuses unsafe production settings", () => {
   assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "console" }), /console/);
   assert.throws(() => loadConfig({ ...good, MONGO_URI: "" }), /MONGO_URI/);
   assert.equal(loadConfig(good).cookieSecure, true);
+  assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "resend" }), /RESEND_API_KEY/);
+  assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "resend", RESEND_API_KEY: "re_x" }), /MAIL_FROM/);
+  const resend = loadConfig({
+    ...good,
+    NOTIFY_PROVIDER: "resend",
+    RESEND_API_KEY: "re_x",
+    MAIL_FROM: "Qtech Service Desk <noreply@qtech.example>",
+  });
+  assert.equal(resend.notify.provider, "resend");
+  assert.equal(resend.notify.resend.apiKey, "re_x");
   // development is relaxed
   const dev = loadConfig({ JWT_SECRET: SECRET, OTP_DEV_ECHO: "true" });
   assert.equal(dev.otp.devEcho, true);

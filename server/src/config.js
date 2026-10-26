@@ -27,10 +27,14 @@ export function loadConfig(env) {
 
   const devEcho = env.OTP_DEV_ECHO === "true";
   const provider = env.NOTIFY_PROVIDER || "console";
-  if (!["console", "smtp"].includes(provider)) problems.push("NOTIFY_PROVIDER must be console or smtp.");
+  if (!["console", "smtp", "resend"].includes(provider)) problems.push("NOTIFY_PROVIDER must be console, smtp or resend.");
   if (isProd && devEcho) problems.push("OTP_DEV_ECHO must not be true in production (it returns the OTP to the caller).");
-  if (isProd && provider === "console") problems.push("NOTIFY_PROVIDER=console only prints OTPs in the log. Use smtp in production.");
+  if (isProd && provider === "console") problems.push("NOTIFY_PROVIDER=console only prints OTPs in the log. Use smtp or resend in production.");
   if (provider === "smtp" && !env.SMTP_HOST) problems.push("SMTP_HOST is required when NOTIFY_PROVIDER=smtp.");
+  if (provider === "resend") {
+    if (!env.RESEND_API_KEY) problems.push("RESEND_API_KEY is required when NOTIFY_PROVIDER=resend.");
+    if (!env.MAIL_FROM) problems.push("MAIL_FROM is required when NOTIFY_PROVIDER=resend (example: Qtech Service Desk <noreply@YOUR-VERIFIED-DOMAIN>).");
+  }
 
   if (problems.length) throw new Error("Invalid configuration:\n- " + problems.join("\n- "));
 
@@ -64,6 +68,10 @@ export function loadConfig(env) {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS,
         from: env.SMTP_FROM || "Qtech Service Desk <no-reply@localhost>",
+      },
+      resend: {
+        apiKey: env.RESEND_API_KEY || "",
+        from: env.MAIL_FROM || "",
       },
     },
   };

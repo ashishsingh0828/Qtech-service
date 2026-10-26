@@ -46,10 +46,18 @@ export const requireAuth = asyncHandler(async (req, _res, next) => {
 export const requirePermission = (action) => (req, _res, next) =>
   can(req.user.role, action) ? next() : next(new HttpError(403, "You do not have permission to do that."));
 
+function requestOrigin(req) {
+  const host = (req.get("x-forwarded-host") || req.get("host") || "").split(",")[0].trim();
+  const proto = (req.get("x-forwarded-proto") || req.protocol || "http").split(",")[0].trim();
+  return host ? `${proto}://${host}` : "";
+}
+
 // Blocks cross-site form posts. Browsers always send Origin on POST/PUT/DELETE.
+// Same-origin posts (the built UI served by this server on Render) are allowed.
 export function originGuard(req, _res, next) {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   const origin = req.get("origin");
-  if (origin && !config.clientOrigins.includes(origin)) return next(new HttpError(403, "Request origin is not allowed."));
-  next();
+  if (!origin) return next();
+  if (config.clientOrigins.includes(origin) || origin === requestOrigin(req)) return next();
+  return next(new HttpError(403, "Request origin is not allowed."));
 }

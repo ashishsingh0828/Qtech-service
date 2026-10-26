@@ -9,21 +9,32 @@ export const MAX_IMPORT_ROWS = 5000;
 
 const BASE_HEAD = [
   "SR. No", "Customer Name", "City", "Name", "Mobile No", "Mail", "Location", "Contract Type",
-  "Euipment Name", "Serial NO:", "Start Date", "Month", "Year", "End Date", "Status", "Final Status",
+  "Euipment Name", "Serial NO", "Start Date", "Month", "Year", "End Date", "Status", "Final Status",
   "Validated (Yes/No)", "Validated by", "By when Data will be validated", "Days", "Total PMS",
+];
+
+// Extra columns from the live "customer handling for service" workbook (typos included).
+const TAIL_HEAD = [
+  "Breakdown Calls 1", "Breakdown Calls 2", "Breakdown Calls 3", "Breakdown Calls 4", "Breakdown Calls 5",
+  "AMC", "Follow up", "Validated", "Validated at", "Rejection reason", "Verified", "Verified by", "Verified at",
+  "Warranty live", "Next due PMS", "Proposal sent at", "Ack response", "Ack note", "Ack at", "Open calls", "Last call date",
+  "Engineer",
 ];
 
 export function exportHeaders() {
   const head = [...BASE_HEAD];
   for (let n = 1; n <= MAX_PMS; n++) {
     head.push("PMS " + n);
-    if (n < MAX_PMS) head.push(n === 1 ? "PM Date" : "PM Date" + n);
+    if (n === 1) head.push("PM Date", "PM Date 1");
+    else if (n < MAX_PMS) head.push("PM Date" + n);
+    else head.push("Compaint", "PM Date 15");
   }
-  head.push("Engineer");
+  head.push(...TAIL_HEAD);
   return head;
 }
 
-export const isDateHeader = (h) => /^(start date|end date|by when data will be validated|pms \d+|pm date\d*)$/i.test(h);
+export const isDateHeader = (h) =>
+  /^(start date|end date|by when data will be validated|pms \d+|pm date\s*\d*|next due pms|last call date|validated at|verified at|proposal sent at|ack at)$/i.test(h);
 
 /* ---------- export ---------- */
 // contracts: the JSON shape the API returns. nameById: Map(userId -> name).
@@ -46,9 +57,27 @@ export function buildExport(contracts, nameById, today) {
     for (let n = 0; n < MAX_PMS; n++) {
       const p = c.pms[n];
       r.push(p ? p.date : "NA");
-      if (n < MAX_PMS - 1) r.push(p ? p.done : "NA");
+      if (n === 0) {
+        r.push(p ? p.done || "NA" : "NA");
+        r.push(""); // PM Date 1 (kept for the live 74-column sheet)
+      } else if (n < MAX_PMS - 1) {
+        r.push(p ? p.done || "NA" : "NA");
+      } else {
+        r.push(""); // Compaint
+        r.push(p ? p.done || "NA" : "NA");
+      }
     }
-    r.push(nameById.get(c.engineerId) || "");
+    r.push(
+      "", "", "", "", "",
+      c.amc?.state && c.amc.state !== "Pending" ? c.amc.state : status === "Expired" ? "AMC Due" : "",
+      "", "", "", "", "", "", "",
+      status === "Expired" ? "Expired" : "Active",
+      c.pms[0]?.date || "",
+      "", "", "", "",
+      "",
+      "",
+      nameById.get(c.engineerId) || ""
+    );
     return r;
   });
   return { groups, head, rows };

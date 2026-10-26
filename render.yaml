@@ -1,0 +1,36 @@
+# Render Blueprint. Connect this GitHub repo, then set the secret env vars in the dashboard.
+# Do not put API keys, JWT secrets or the database password in this file.
+services:
+  - type: web
+    name: qtech-service-desk
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: STATIC_DIR
+        value: ../client/dist
+      - key: NOTIFY_PROVIDER
+        value: resend
+      - key: STORAGE_DRIVER
+        value: gridfs
+      - key: TZ_NAME
+        value: Asia/Kolkata
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false

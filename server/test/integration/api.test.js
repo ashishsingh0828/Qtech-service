@@ -109,6 +109,17 @@ test("cross-site writes are refused", async () => {
   assert.equal(r.status, 403);
 });
 
+test("same-origin writes are allowed when the UI is served from this server", async () => {
+  const a = await as("admin");
+  const r = await a
+    .put(`/api/contracts/${ids.c1}/validation`)
+    .set("Origin", "https://qtech-service.onrender.com")
+    .set("Host", "qtech-service.onrender.com")
+    .set("X-Forwarded-Proto", "https")
+    .send({ valid: "Yes", vby: "Admin" });
+  assert.equal(r.status, 200);
+});
+
 test("engineers only see and touch their own contracts", async () => {
   const mine = await list("engineer");
   assert.deepEqual(mine.map((c) => c.cust), ["Apex"]);

@@ -53,7 +53,7 @@ export function loadConfig(env) {
     uploadDir: path.resolve(env.UPLOAD_DIR || "./uploads"),
     staticDir: env.STATIC_DIR ? path.resolve(env.STATIC_DIR) : "",
     tz: env.TZ_NAME || "Asia/Kolkata",
-    trustProxy: env.TRUST_PROXY ? int(env.TRUST_PROXY, 1) : 0,
+    trustProxy: env.TRUST_PROXY !== undefined && env.TRUST_PROXY !== "" ? int(env.TRUST_PROXY, 1) : isProd ? 1 : 0,
     bcryptRounds: int(env.BCRYPT_ROUNDS, 12),
     loginRateMax: int(env.LOGIN_RATE_MAX, 10),
     otp: {

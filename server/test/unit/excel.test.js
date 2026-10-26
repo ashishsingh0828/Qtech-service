@@ -129,3 +129,46 @@ test("unknown engineer names leave the contract unassigned", () => {
   const matrix = [["Customer Name", "Start Date", "End Date", "Engineer"], ["Zed", "2026-01-01", "2027-01-01", "Nobody"]];
   assert.equal(parseSheet(matrix, new Map([["ravi kumar", "e1"]])).contracts[0].engineerId, "");
 });
+
+test("the live 74-column customer-handling sheet (typos included) imports and export keeps Engineer", () => {
+  const { head, rows } = buildExport(sample, names, "2026-10-22");
+  assert.ok(head.includes("Euipment Name"));
+  assert.ok(head.includes("Compaint"));
+  assert.ok(head.includes("Serial NO"));
+  assert.equal(head[head.indexOf("PMS 15") + 1], "Compaint");
+  assert.equal(rows[0][head.indexOf("Engineer")], "Ravi Kumar");
+  assert.equal(rows[0].length, head.length);
+
+  const liveHead = [
+    "SR. No", "Customer Name", "City", "Name", "Mobile No", "Mail", "Location", "Contract Type",
+    "Euipment Name", "Serial NO", "Start Date", "Month", "Year", "End Date", "Status", "Final Status",
+    "Validated (Yes/No)", "Validated by", "By when Data will be validated", "Days", "Total PMS",
+    "PMS 1", "PM Date", "PM Date 1", "PMS 2", "PM Date2", "PMS 3", "PM Date3", "PMS 4", "PM Date4",
+    "PMS 5", "PM Date5", "PMS 6", "PM Date6", "PMS 7", "PM Date7", "PMS 8", "PM Date8", "PMS 9", "PM Date9",
+    "PMS 10", "PM Date10", "PMS 11", "PM Date11", "PMS 12", "PM Date12", "PMS 13", "PM Date13",
+    "PMS 14", "PM Date14", "PMS 15", "Compaint", "PM Date 15",
+    "Breakdown Calls 1", "Breakdown Calls 2", "Breakdown Calls 3", "Breakdown Calls 4", "Breakdown Calls 5",
+    "AMC", "Follow up", "Validated", "Validated at", "Rejection reason", "Verified", "Verified by", "Verified at",
+    "Warranty live", "Next due PMS", "Proposal sent at", "Ack response", "Ack note", "Ack at", "Open calls", "Last call date",
+  ];
+  const liveRow = [
+    7, "Translational Health", "Faridabad", "Santosh", "8700412914", "lab@thsti.example", "2nd Floor",
+    "EXTENDED WARRANTY", "CO2 Incubator", "42656221", "07/04/2023", 4, 2024, "06/04/2024",
+    "Expired", "Expired - EXTENDED WARRANTY", "", "", "", 365, 2,
+    "04/09/2023", "NA", "NA", "05/03/2024", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA",
+    "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA", "NA",
+    "", "NA", "", "", "", "", "", "AMC Due", "", "", "", "", "", "", "", "Expired", "04/09/2023",
+    "", "", "", "", 0, "",
+  ];
+  const { contracts, unreadable } = parseSheet([["Customer Detail"], liveHead, liveRow], new Map());
+  assert.equal(unreadable, 0);
+  assert.equal(contracts.length, 1);
+  assert.equal(contracts[0].cust, "Translational Health");
+  assert.equal(contracts[0].equip, "CO2 Incubator");
+  assert.equal(contracts[0].serial, "42656221");
+  assert.equal(contracts[0].type, "Extended Warranty");
+  assert.equal(contracts[0].start, "2023-04-07");
+  assert.equal(contracts[0].end, "2024-04-06");
+  assert.equal(contracts[0].pms[0].date, "2023-09-04");
+  assert.equal(contracts[0].pms[1].date, "2024-03-05");
+});

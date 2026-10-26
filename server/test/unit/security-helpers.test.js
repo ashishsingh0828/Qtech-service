@@ -76,6 +76,7 @@ test("config refuses unsafe production settings", () => {
   assert.throws(() => loadConfig({ ...good, NOTIFY_PROVIDER: "console" }), /console/);
   assert.throws(() => loadConfig({ ...good, MONGO_URI: "" }), /MONGO_URI/);
   assert.equal(loadConfig(good).cookieSecure, true);
+  assert.equal(loadConfig(good).trustProxy, 1);
   assert.equal(loadConfig(good).storageDriver, "gridfs");
   assert.equal(loadConfig({ ...good, STORAGE_DRIVER: "disk" }).storageDriver, "disk");
   assert.throws(() => loadConfig({ ...good, STORAGE_DRIVER: "s3" }), /STORAGE_DRIVER/);
